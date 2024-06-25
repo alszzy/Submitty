@@ -61,6 +61,14 @@ def gen_script(machine_name, worker: false, base: false)
     DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
     VERSION=$(lsb_release -sr | tr '[:upper:]' '[:lower:]')
     mkdir -p ${GIT_PATH}/.vagrant/logs
+    
+    # Install CIFS utilities
+    sudo apt-get update
+    sudo apt-get install -y cifs-utils
+
+    # Add wildcard to Git's safe directory list for all users and all repositories
+    sudo git config --system --add safe.directory '*'
+
     #{setup_cmd}
 SCRIPT
 
@@ -154,7 +162,7 @@ Vagrant.configure(2) do |config|
     ubuntu.vm.network 'forwarded_port', guest: 1511, host: ENV.fetch('VM_PORT_SITE', 1511)
     ubuntu.vm.network 'forwarded_port', guest: 8443, host: ENV.fetch('VM_PORT_WS',   8443)
     ubuntu.vm.network 'forwarded_port', guest: 5432, host: ENV.fetch('VM_PORT_DB',  16442)
-    ubuntu.vm.network 'forwarded_port', guest: 7000, host: ENV.fetch('VM_PORT_SAML', 7000)
+    ubuntu.vm.network 'forwarded_port', guest: 7000, host: ENV.fetch('VM_PORT_SAML', 1234)
     ubuntu.vm.network 'forwarded_port', guest:   22, host: ENV.fetch('VM_PORT_SSH',  2222), id: 'ssh'
     ubuntu.vm.provision 'shell', inline: gen_script(vm_name, base: base_box)
   end
