@@ -1798,7 +1798,7 @@ function onDeleteComponent(me) {
 function onAddComponent(peer) {
     addComponent(peer)
         .catch((err) => {
-            console.error(err);
+            console.error(err); 
             alert(`Failed to add component! ${err.message}`);
         })
         .then(() => {
@@ -1813,6 +1813,7 @@ function onAddComponent(peer) {
         .catch((err) => {
             alert(`Failed to reload rubric! ${err.message}`);
         });
+
 }
 
 /**
@@ -2239,6 +2240,7 @@ function verifyAllComponents() {
  * @return {Promise}
  */
 function addComponent(peer) {
+    console.log("********************************************************************************");
     return ajaxAddComponent(getGradeableId(), peer);
 }
 
