@@ -2240,7 +2240,6 @@ function verifyAllComponents() {
  * @return {Promise}
  */
 function addComponent(peer) {
-    console.log("********************************************************************************");
     return ajaxAddComponent(getGradeableId(), peer);
 }
 
