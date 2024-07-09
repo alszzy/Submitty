@@ -2619,6 +2619,7 @@ class ElectronicGraderController extends AbstractController {
         }
 
         $peer = $_POST['peer'] === 'true';
+        $curve = $_POST['curve'] === 'true';
 
         // checks if user has permission
         if (!$this->core->getAccess()->canI("grading.electronic.add_component", ["gradeable" => $gradeable])) {
@@ -2640,11 +2641,23 @@ class ElectronicGraderController extends AbstractController {
                 0,
                 false,
                 $peer,
+                $curve,
                 $page
             );
+            
             $component->addMark('No Credit', 0.0, false);
             $this->core->getQueries()->updateGradeable($gradeable);
-            $this->core->getOutput()->renderJsonSuccess(['component_id' => $component->getId()]);
+
+            $data = array(
+                'component_id' => $component->getId(),
+                'curve' => $curve,
+                'is_curve' => $component->isCurveComponent(),
+                'is_peer' => $component->isPeerComponent(),
+            );
+
+            $this->core->getOutput()->renderJsonSuccess($data);
+
+            // $this->core->getOutput()->renderJsonSuccess(['component_id' => $component->getId()]);
         }
         catch (\InvalidArgumentException $e) {
             $this->core->getOutput()->renderJsonFail($e->getMessage());

@@ -63,6 +63,7 @@ class SimpleStat extends AbstractModel {
             $this->standard_deviation = $details['std_dev'];
             $this->order = $details['gc_order'];
             $this->is_peer_component = $details['gc_is_peer'];
+            $this->is_curve_component = $details['gc_is_curve'];
             $this->count = $details['count'];
             $this->active_grade_inquiry_count = $details['active_grade_inquiry_count'];
             $this->grader_info = $this->core->getQueries()->getAverageGraderScores($details['g_id'], $details['gc_id'], $details['section_key'], $details['team'], $bad_submissions_cookie, $null_section_cookie);

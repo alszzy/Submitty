@@ -229,6 +229,7 @@ function renderGradingComponent(grader_id, component, graded_component, grading_
             can_verify_graders: canVerifyGraders,
             grader_id: grader_id,
             peer_component: component.peer,
+            curve_component: component.curve,
             allow_custom_marks: allowCustomMarks,
             itempool_id: Object.prototype.hasOwnProperty.call(itempool_items, component.id) ? itempool_items[component.id] : '',
             ta_grading_peer: taGradingPeer,
@@ -289,6 +290,11 @@ function renderInstructorEditGradeable(gradeable, itempool_available, itempool_o
  * @returns {Promise} the html for the component
  */
 function renderEditComponent(component, precision, showMarkList) {
+
+
+    console.log("renderEditComponent");
+    console.log(component);
+
     return new Promise((resolve) => {
         // TODO: I don't think this is async
         resolve(Twig.twig({ ref: 'EditComponent' }).render({
@@ -300,6 +306,7 @@ function renderEditComponent(component, precision, showMarkList) {
             itempool_options: getItempoolOptions(),
             decimal_precision: DECIMAL_PRECISION,
             peer_component: component.peer_component,
+            curve_component: component.curve_component,
         }));
     });
 }
