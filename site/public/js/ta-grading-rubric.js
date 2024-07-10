@@ -1170,6 +1170,7 @@ function getComponentFromDOM(component_id) {
             is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
             itempool_option: domElement.find('select[name="component-itempool"]').val(),
             peer: (domElement.attr('data-peer') === 'true'),
+            curve: (domElement.attr('data-curve') === 'true'),
         };
     }
     return {
@@ -1186,6 +1187,7 @@ function getComponentFromDOM(component_id) {
         is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
         itempool_option: domElement.find('select[name="component-itempool"]').val(),
         peer: (domElement.attr('data-peer') === 'true'),
+        curve: (domElement.attr('data-curve') === 'true'),
     };
 }
 
@@ -2789,6 +2791,7 @@ function closeComponentInstructorEdit(component_id, saveChanges) {
         sequence = sequence
             .then(() => {
                 // eslint-disable-next-line eqeqeq
+
                 if (component.max_value == 0 && component.upper_clamp == 0 && component.lower_clamp < 0) {
                     const mark_title = 'No Penalty Points';
                     component.marks[0].title = mark_title;
@@ -2805,6 +2808,14 @@ function closeComponentInstructorEdit(component_id, saveChanges) {
                     component.marks[0].title = mark_title;
                     $(`#mark-${component.marks[0].id.toString()}`).find(':input')[1].value = 'No Credit';
                 }
+
+                if(component.curve){
+                    component.lower_clamp = 0;
+                }
+                
+                console.log('curve ' + component.curve);
+                console.log('lower_clamp ' + component.lower_clamp);
+
                 return saveMarkList(component_id);
             })
             .then(() => {

@@ -2380,7 +2380,8 @@ class ElectronicGraderController extends AbstractController {
             $this->core->getOutput()->renderJsonFail('Missing page parameter');
         }
         if (!is_numeric($lower_clamp)) {
-            $this->core->getOutput()->renderJsonFail('Invalid lower_clamp parameter');
+            $this->core->getOutput()->renderJsonFail($lower_clamp . ' is not a number');
+            // $this->core->getOutput()->renderJsonFail('Invalid lower_clamp parameter');
             return;
         }
         if (!is_numeric($default)) {
@@ -2626,13 +2627,21 @@ class ElectronicGraderController extends AbstractController {
             $this->core->getOutput()->renderJsonFail('Insufficient permissions to add components');
             return;
         }
-
+        
         try {
             $page = $gradeable->isPdfUpload() ? ($gradeable->isStudentPdfUpload() ? Component::PDF_PAGE_STUDENT : 1) : Component::PDF_PAGE_NONE;
 
             // Once we've parsed the inputs and checked permissions, perform the operation
+            
+            $title = 'Curve';
+
+            if(!$curve) {
+                $title = 'Problem ' . strval(count($gradeable->getComponents()) + 1);
+            }
+
+
             $component = $gradeable->addComponent(
-                'Problem ' . strval(count($gradeable->getComponents()) + 1),
+                $title,
                 '',
                 '',
                 0,
@@ -2648,16 +2657,7 @@ class ElectronicGraderController extends AbstractController {
             $component->addMark('No Credit', 0.0, false);
             $this->core->getQueries()->updateGradeable($gradeable);
 
-            $data = array(
-                'component_id' => $component->getId(),
-                'curve' => $curve,
-                'is_curve' => $component->isCurveComponent(),
-                'is_peer' => $component->isPeerComponent(),
-            );
-
-            $this->core->getOutput()->renderJsonSuccess($data);
-
-            // $this->core->getOutput()->renderJsonSuccess(['component_id' => $component->getId()]);
+            $this->core->getOutput()->renderJsonSuccess(['component_id' => $component->getId()]);
         }
         catch (\InvalidArgumentException $e) {
             $this->core->getOutput()->renderJsonFail($e->getMessage());

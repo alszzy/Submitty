@@ -1022,6 +1022,11 @@ tr.is_publish {
     border: 3px solid var(--standard-plum-purple);
 }
 
+.gradeable .curve-border {
+    border: 3px solid var(--standard-vibrant-orange);
+}
+
+
 .gradeable .component .badge-container.edit-mode {
     min-width: 170px;
 }

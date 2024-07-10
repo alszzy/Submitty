@@ -16,6 +16,10 @@ Required Input:
 <div id="component-{{ component.id }}"
     {% if peer_component %}
         class="box peer-component component peer-border"
+
+    {% elseif curve_component %}
+        class="box curve-component component curve-border"
+
     {% else %}
        class="box component ta-component"
     {% endif %}
@@ -27,6 +31,7 @@ Required Input:
      data-lower_clamp="{{ component.lower_clamp }}"
      data-default="{{ component.default }}"
      data-peer="{{ component.peer_component }}"
+     data-curve="{{ component.curve_component }}"
      data-max_value="{{ component.max_value }}"
      data-upper_clamp="{{ component.upper_clamp }}"
      data-itempool_id="{{ itempool_id }}">

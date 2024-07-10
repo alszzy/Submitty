@@ -25,6 +25,7 @@ function loadTemplates() {
         { id: 'GradingComponent', href: '/templates/grading/GradingComponent.twig' },
         { id: 'GradingComponentHeader', href: '/templates/grading/GradingComponentHeader.twig' },
         { id: 'EditComponent', href: '/templates/grading/EditComponent.twig' },
+        { id: 'EditCurveComponent', href: '/templates/grading/EditCurveComponent.twig' },
         { id: 'EditComponentHeader', href: '/templates/grading/EditComponentHeader.twig' },
         { id: 'Component', href: '/templates/grading/Component.twig' },
         { id: 'Mark', href: '/templates/grading/Mark.twig' },
@@ -295,9 +296,16 @@ function renderEditComponent(component, precision, showMarkList) {
     console.log("renderEditComponent");
     console.log(component);
 
+    component_to_render = 'EditComponent';
+
+    if(component.curve_component){
+        component_to_render = 'EditCurveComponent';
+    }
+
+
     return new Promise((resolve) => {
         // TODO: I don't think this is async
-        resolve(Twig.twig({ ref: 'EditComponent' }).render({
+        resolve(Twig.twig({ ref: component_to_render}).render({
             component: component,
             precision: precision,
             show_mark_list: showMarkList,
