@@ -173,6 +173,7 @@ function ajaxSaveComponent(gradeable_id, component_id, title, ta_comment, studen
                 is_itempool_linked: is_itempool_linked,
                 itempool_option: itempool_option === 'null' ? undefined : itempool_option,
                 peer: false,
+                curve: false,
             },
             success: function (response) {
                 if (response.status !== 'success') {

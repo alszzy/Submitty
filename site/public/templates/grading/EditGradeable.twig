@@ -7,16 +7,44 @@
 
 {% block components_block %}
     {% for component in gradeable.components %}
-        <div class="component-container edit-component-container{{ (component.peer_component) ? ' peer-component-container' : '' }}" {{ (component.peer_component) ? 'data-testid="peer-component-container"' : '' }}>
+        {% set container_class = '' %}
+        {% set data_testid = '' %}
+
+        {% if component.peer_component %}
+            {% set container_class = 'peer-component-container' %}
+            {% set data_testid = 'peer-component-container' %}
+        {% elseif component.curve_component %}
+            {% set container_class = 'curve-component-container' %}
+            {% set data_testid = 'curve-component-container' %}
+        {% endif %}
+
+        <div class="component-container edit-component-container{{ container_class }}" {{ data_testid ? 'data-testid=' ~ data_testid : '' }}>
             {% include "EditComponent.twig" with {
                 'precision': gradeable.precision,
                 'show_mark_list': false,
                 'peer_component' : component.peer_component,
+                'curve_component' : component.curve_component,
                 'itempool_available' : itempool_available,
                 'itempool_options': itempool_options,
                 'gradeable': gradeable
             } %}
         </div>
+
+
+        {#
+        <div class="component-container edit-component-container{{ (component.peer_component) ? ' peer-component-container' : '' }}" {{ (component.peer_component) ? 'data-testid="peer-component-container"' : '' }}>
+            {% include "EditComponent.twig" with {
+                'precision': gradeable.precision,
+                'show_mark_list': false,
+                'peer_component' : component.peer_component,
+                'curve_component' : component.curve_component,
+                'itempool_available' : itempool_available,
+                'itempool_options': itempool_options,
+                'gradeable': gradeable
+            } %}
+        </div>
+
+        #}
     {% endfor %}
 {% endblock %}
 
