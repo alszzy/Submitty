@@ -7,11 +7,23 @@
 
 {% block components_block %}
     {% for component in gradeable.components %}
-        <div class="component-container edit-component-container{{ (component.peer_component) ? ' peer-component-container' : '' }}" {{ (component.peer_component) ? 'data-testid="peer-component-container"' : '' }}>
+        {% set container_class = '' %}
+        {% set data_testid = '' %}
+
+        {% if component.peer_component %}
+            {% set container_class = 'peer-component-container' %}
+            {% set data_testid = 'peer-component-container' %}
+        {% elseif component.curve_component %}
+            {% set container_class = 'curve-component-container' %}
+            {% set data_testid = 'curve-component-container' %}
+        {% endif %}
+
+        <div class="component-container edit-component-container{{ container_class }}" {{ data_testid ? 'data-testid=' ~ data_testid : '' }}>
             {% include "EditComponent.twig" with {
                 'precision': gradeable.precision,
                 'show_mark_list': false,
                 'peer_component' : component.peer_component,
+                'curve_component' : component.curve_component,
                 'itempool_available' : itempool_available,
                 'itempool_options': itempool_options,
                 'gradeable': gradeable
@@ -23,7 +35,7 @@
 {% block footer_content %}
     <input type="button" class="btn btn-primary key_to_click" tabindex="0" value="Add New Component" onclick="onAddComponent(false)" />
     <input type="button" class="btn peer-button key_to_click" tabindex="0" value="Add New Peer Component" onclick="onAddComponent(true)" data-testid="add-new-peer-component" />
-    <input type="button" class="btn peer-button key_to_click" tabindex="0" value="Add Curve Component" onclick="onAddComponent(true)"  />
+    <input type="button" class="btn peer-button key_to_click" tabindex="0" value="Add Curve Component" onclick="onAddComponent(false, true)"  />
     <a href="{{ export_components_url }}" class="btn btn-default">Export Components</a>
     <label for="import-components-file" class="btn btn-default">Import Components</label>
     <input id="import-components-file" type="file" class="btn ignore" onchange="importComponentsFromFile();" style="display: none;"/>

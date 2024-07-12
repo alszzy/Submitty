@@ -173,6 +173,7 @@ function ajaxSaveComponent(gradeable_id, component_id, title, ta_comment, studen
                 is_itempool_linked: is_itempool_linked,
                 itempool_option: itempool_option === 'null' ? undefined : itempool_option,
                 peer: false,
+                curve: false,
             },
             success: function (response) {
                 if (response.status !== 'success') {
@@ -651,7 +652,7 @@ function ajaxSaveComponentOrder(gradeable_id, order) {
  * @param {string} gradeable_id
  * @return {Promise} Rejects except when the response returns status 'success'
  */
-function ajaxAddComponent(gradeable_id, peer) {
+function ajaxAddComponent(gradeable_id, peer, curve) {
     return new Promise((resolve, reject) => {
         $.getJSON({
             type: 'POST',
@@ -660,6 +661,7 @@ function ajaxAddComponent(gradeable_id, peer) {
             data: {
                 csrf_token: csrfToken,
                 peer: peer,
+                curve: curve,
             },
             success: function (response) {
                 if (response.status !== 'success') {
@@ -1169,6 +1171,7 @@ function getComponentFromDOM(component_id) {
             is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
             itempool_option: domElement.find('select[name="component-itempool"]').val(),
             peer: (domElement.attr('data-peer') === 'true'),
+            curve: (domElement.attr('data-curve') === 'true'),
         };
     }
     return {
@@ -1185,6 +1188,7 @@ function getComponentFromDOM(component_id) {
         is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
         itempool_option: domElement.find('select[name="component-itempool"]').val(),
         peer: (domElement.attr('data-peer') === 'true'),
+        curve: (domElement.attr('data-curve') === 'true'),
     };
 }
 
@@ -1793,8 +1797,8 @@ function onDeleteComponent(me) {
 /**
  * Called when the 'add new component' button is pressed
  */
-function onAddComponent(peer) {
-    addComponent(peer)
+function onAddComponent(peer, curve = false) {
+    addComponent(peer, curve)
         .catch((err) => {
             console.error(err); 
             alert(`Failed to add component! ${err.message}`);
@@ -2235,9 +2239,8 @@ function verifyAllComponents() {
  * Adds a blank component to the gradeable
  * @return {Promise}
  */
-function addComponent(peer) {
-    console.log("********************************************************************************");
-    return ajaxAddComponent(getGradeableId(), peer);
+function addComponent(peer, curve) {
+    return ajaxAddComponent(getGradeableId(), peer, curve);
 }
 
 /**

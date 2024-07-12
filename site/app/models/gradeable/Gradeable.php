@@ -1313,6 +1313,7 @@ class Gradeable extends AbstractModel {
         float $upper_clamp,
         bool $text,
         bool $peer,
+        bool $curve,
         int $pdf_page
     ) {
         $component = new Component($this->core, $this, [
@@ -1325,6 +1326,7 @@ class Gradeable extends AbstractModel {
             'upper_clamp' => $upper_clamp,
             'text' => $text,
             'peer_component' => $peer,
+            'curve_component' => $curve,
             'page' => $pdf_page,
             'id' => 0,
             'order' => count($this->components)
