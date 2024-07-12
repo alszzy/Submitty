@@ -2046,6 +2046,20 @@ class Gradeable extends AbstractModel {
     }
 
     /**
+     * Gets if a gradeable has a curve component
+     * @return bool
+     */
+    public function hasCurveComponent() {
+        foreach ($this->getComponents() as $component) {
+            if ($component->isCurveComponent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Get a list of all grading sections assigned to a given user
      * @param User $user
      * @return GradingSection[]

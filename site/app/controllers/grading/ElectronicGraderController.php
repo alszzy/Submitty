@@ -2637,6 +2637,9 @@ class ElectronicGraderController extends AbstractController {
 
             if(!$curve) {
                 $title = 'Problem ' . strval(count($gradeable->getComponents()) + 1);
+            } else if($gradeable->hasCurveComponent()) {
+                $this->core->getOutput()->renderJsonSuccess('curve exists');
+                return;
             }
 
 

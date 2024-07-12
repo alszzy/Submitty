@@ -668,6 +668,9 @@ function ajaxAddComponent(gradeable_id, peer, curve) {
                     console.error(`Something went wrong adding the component: ${response.message}`);
                     reject(new Error(response.message));
                 }
+                else if(response.data == "curve exists") {
+                    alert("Curve already exists for this gradeable");
+                }
                 else {
                     resolve(response.data);
                 }
@@ -2812,10 +2815,12 @@ function closeComponentInstructorEdit(component_id, saveChanges) {
 
                 if(component.curve){
                     component.lower_clamp = 0;
+                    component.upper_clamp = 1000000;
                 }
                 
                 console.log('curve ' + component.curve);
                 console.log('lower_clamp ' + component.lower_clamp);
+                console.log('upper_clamp ' + component.upper_clamp);
 
                 return saveMarkList(component_id);
             })

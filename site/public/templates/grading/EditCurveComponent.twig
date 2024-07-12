@@ -91,9 +91,10 @@
                        onmouseup="onComponentPointsChange(this)"/>
             </div>
         </div>
-        
+
+
         <div class="row point-input-row">
-            <label for="extra-credit-points-{{component.id}}" class="col-label-fixed">Additional Extra Credit Points</label>
+            <label for="extra-credit-points-{{component.id}}" class="col-label-fixed">Curve Points</label>
             <div class="col point-input-container">
                 <input id="extra-credit-points-{{component.id}}"
                        class="extra-credit-points"
@@ -103,10 +104,7 @@
                        onchange="onComponentPointsChange(this)"
                        onmouseup="onComponentPointsChange(this)"/>
             </div>
-            <div class="col"><i>Student scores will be clamped from above to Points + Additional Extra Credit Points</i></div>
         </div>
-        
-        <div class="row divider"></div>
     </div>
 {% endblock %}
 
