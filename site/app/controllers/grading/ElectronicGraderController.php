@@ -2619,6 +2619,7 @@ class ElectronicGraderController extends AbstractController {
         }
 
         $peer = $_POST['peer'] === 'true';
+        $curve = $_POST['curve'] === 'true';
 
         // checks if user has permission
         if (!$this->core->getAccess()->canI("grading.electronic.add_component", ["gradeable" => $gradeable])) {
@@ -2640,6 +2641,7 @@ class ElectronicGraderController extends AbstractController {
                 0,
                 false,
                 $peer,
+                $curve,
                 $page
             );
             $component->addMark('No Credit', 0.0, false);
