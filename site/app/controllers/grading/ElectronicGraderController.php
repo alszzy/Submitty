@@ -2621,6 +2621,14 @@ class ElectronicGraderController extends AbstractController {
         $peer = $_POST['peer'] === 'true';
         $curve = $_POST['curve'] === 'true';
 
+        // Check if a curve component already exists
+        if ($curve) {
+            if ($gradeable->hasCurveComponent()) {
+                $this->core->getOutput()->renderJsonFail('A curve component already exists for this gradeable');
+                return;
+            }
+        }
+
         // checks if user has permission
         if (!$this->core->getAccess()->canI("grading.electronic.add_component", ["gradeable" => $gradeable])) {
             $this->core->getOutput()->renderJsonFail('Insufficient permissions to add components');
@@ -2630,9 +2638,12 @@ class ElectronicGraderController extends AbstractController {
         try {
             $page = $gradeable->isPdfUpload() ? ($gradeable->isStudentPdfUpload() ? Component::PDF_PAGE_STUDENT : 1) : Component::PDF_PAGE_NONE;
 
+            // set the title based on whether it is peer or curve component
+            $title = $curve ? 'Curved Score' : 'Problem ' . strval(count($gradeable->getComponents()) + 1);
+
             // Once we've parsed the inputs and checked permissions, perform the operation
             $component = $gradeable->addComponent(
-                'Problem ' . strval(count($gradeable->getComponents()) + 1),
+                $title,
                 '',
                 '',
                 0,
