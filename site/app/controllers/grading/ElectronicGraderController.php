@@ -2242,81 +2242,133 @@ class ElectronicGraderController extends AbstractController {
             return;
         }
 
-        // Get user id from the anon id
-        $submitter_id = $this->tryGetSubmitterIdFromAnonId($anon_id, $gradeable_id);
-        if ($submitter_id === false) {
-            return;
-        }
+        // Check if the component is a curve component
+        $is_curve_component = $component->isCurveComponent();
 
-        // Get the graded gradeable
-        $graded_gradeable = $this->tryGetGradedGradeable($gradeable, $submitter_id);
-        if ($graded_gradeable === false) {
-            return;
-        }
-
-
-        // checks if user has permission
-        if (!$this->core->getAccess()->canI("grading.electronic.save_graded_component", ["gradeable" => $gradeable, "graded_gradeable" => $graded_gradeable, "component" => $component])) {
-            $this->core->getOutput()->renderJsonFail('Insufficient permissions to save component/marks');
-            return;
-        }
-
-        //don't allow custom marks if they are disabled
-        if ($custom_message != null || $custom_points != null) {
-            if (!$gradeable->getAllowCustomMarks()) {
-                $this->core->getOutput()->renderJsonFail('Custom marks are disabled for this assignment');
+        if ($is_curve_component) {
+            $this->handleCurveComponent($gradeable, $component, $grader, $custom_points, $custom_message, $marks, $component_version, $silent_edit);
+        } else {
+            // Get user id from the anon id
+            $submitter_id = $this->tryGetSubmitterIdFromAnonId($anon_id, $gradeable_id);
+            if ($submitter_id === false) {
                 return;
             }
-        }
 
-        //don't allow peer graders to save custom marks no matter how gradeable is configured
-        if (($custom_message != null || $custom_points != null) && $gradeable->hasPeerComponent()) {
-            if ($this->core->getUser()->getGroup() == User::GROUP_STUDENT) {
+            // Get the graded gradeable
+            $graded_gradeable = $this->tryGetGradedGradeable($gradeable, $submitter_id);
+            if ($graded_gradeable === false) {
+                return;
+            }
+
+            // checks if user has permission
+            if (!$this->core->getAccess()->canI("grading.electronic.save_graded_component", ["gradeable" => $gradeable, "graded_gradeable" => $graded_gradeable, "component" => $component])) {
                 $this->core->getOutput()->renderJsonFail('Insufficient permissions to save component/marks');
                 return;
             }
-        }
-        // Check if the user can silently edit assigned marks
-        if (!$this->core->getAccess()->canI('grading.electronic.silent_edit')) {
-            $silent_edit = false;
-        }
 
-        $logger_params = [
-            "course_semester" => $this->core->getConfig()->getTerm(),
-            "course_name" => $this->core->getDisplayedCourseName(),
-            "gradeable_id" => $gradeable_id,
-            "grader_id" => $this->core->getUser()->getId(),
-            "component_id" => $component_id,
-            "action" => "SAVE_COMPONENT",
-            "submitter_id" => $submitter_id
-        ];
-        Logger::logTAGrading($logger_params);
+            // Don't allow custom marks if they are disabled
+            if ($custom_message != null || $custom_points != null) {
+                if (!$gradeable->getAllowCustomMarks()) {
+                    $this->core->getOutput()->renderJsonFail('Custom marks are disabled for this assignment');
+                    return;
+                }
+            }
 
-        // Get / create the TA grade
-        $ta_graded_gradeable = $graded_gradeable->getOrCreateTaGradedGradeable();
+            // Don't allow peer graders to save custom marks no matter how gradeable is configured
+            if (($custom_message != null || $custom_points != null) && $gradeable->hasPeerComponent()) {
+                if ($this->core->getUser()->getGroup() == User::GROUP_STUDENT) {
+                    $this->core->getOutput()->renderJsonFail('Insufficient permissions to save component/marks');
+                    return;
+                }
+            }
+            // Check if the user can silently edit assigned marks
+            if (!$this->core->getAccess()->canI('grading.electronic.silent_edit')) {
+                $silent_edit = false;
+            }
 
-        // Get / create the graded component
-        $graded_component = $ta_graded_gradeable->getOrCreateGradedComponent($component, $grader, true);
+            $logger_params = [
+                "course_semester" => $this->core->getConfig()->getTerm(),
+                "course_name" => $this->core->getDisplayedCourseName(),
+                "gradeable_id" => $gradeable_id,
+                "grader_id" => $this->core->getUser()->getId(),
+                "component_id" => $component_id,
+                "action" => "SAVE_COMPONENT",
+                "submitter_id" => $submitter_id
+            ];
+            Logger::logTAGrading($logger_params);
 
-        try {
-            // Once we've parsed the inputs and checked permissions, perform the operation
-            $this->saveGradedComponent(
-                $ta_graded_gradeable,
-                $graded_component,
-                $grader,
-                $custom_points,
-                $custom_message,
-                $marks,
-                $component_version,
-                !$silent_edit
-            );
-            $this->core->getOutput()->renderJsonSuccess();
+            // Get / create the TA grade
+            $ta_graded_gradeable = $graded_gradeable->getOrCreateTaGradedGradeable();
+
+            // Get / create the graded component
+            $graded_component = $ta_graded_gradeable->getOrCreateGradedComponent($component, $grader, true);
+
+            try {
+                // Once we've parsed the inputs and checked permissions, perform the operation
+                $this->saveGradedComponent(
+                    $ta_graded_gradeable,
+                    $graded_component,
+                    $grader,
+                    $custom_points,
+                    $custom_message,
+                    $marks,
+                    $component_version,
+                    !$silent_edit
+                );
+                $this->core->getOutput()->renderJsonSuccess();
+            }
+            catch (\InvalidArgumentException $e) {
+                $this->core->getOutput()->renderJsonFail($e->getMessage());
+            }
+            catch (\Exception $e) {
+                $this->core->getOutput()->renderJsonError($e->getMessage());
+            }
         }
-        catch (\InvalidArgumentException $e) {
-            $this->core->getOutput()->renderJsonFail($e->getMessage());
-        }
-        catch (\Exception $e) {
-            $this->core->getOutput()->renderJsonError($e->getMessage());
+        
+
+
+    }
+
+    /**
+     * Handles saving a curve component
+     */
+    private function handleCurveComponent($gradeable, $component, $grader, $custom_points, $custom_message, $marks, $component_version, $silent_edit) {
+        // Get all graded gradeables for the gradeable
+        $graded_gradeables = $this->core->getQueries()->getGradedGradeables([$gradeable]);
+
+        foreach ($graded_gradeables as $graded_gradeable) {
+            // checks if user has permission
+            if (!$this->core->getAccess()->canI("grading.electronic.save_graded_component", ["gradeable" => $gradeable, "graded_gradeable" => $graded_gradeable, "component" => $component])) {
+                continue; // Skip this graded gradeable if the user doesn't have permission
+            }
+
+            // Get / create the TA grade
+            $ta_graded_gradeable = $graded_gradeable->getOrCreateTaGradedGradeable();
+
+            // Get / create the graded component
+            $graded_component = $ta_graded_gradeable->getOrCreateGradedComponent($component, $grader, true);
+
+            try {
+                // Once we've parsed the inputs and checked permissions, perform the operation
+                $this->saveGradedComponent(
+                    $ta_graded_gradeable,
+                    $graded_component,
+                    $grader,
+                    $custom_points,
+                    $custom_message,
+                    $marks,
+                    $component_version,
+                    !$silent_edit
+                );
+            }
+            catch (\InvalidArgumentException $e) {
+                // Continue with the next graded gradeable
+                continue;
+            }
+            catch (\Exception $e) {
+                // Continue with the next graded gradeable
+                continue;
+            }
         }
     }
 
@@ -2645,6 +2697,16 @@ class ElectronicGraderController extends AbstractController {
         }
 
         $peer = $_POST['peer'] === 'true';
+        $curve = $_POST['curve'] === 'true';
+
+        // Check if a curve component already exists
+        if ($curve) {
+            if ($gradeable->hasCurveComponent()) {
+                $this->core->getOutput()->renderJsonFail('A curve component already exists for this gradeable');
+                return;
+            }
+        }
+        
 
         // checks if user has permission
         if (!$this->core->getAccess()->canI("grading.electronic.add_component", ["gradeable" => $gradeable])) {
@@ -2654,10 +2716,11 @@ class ElectronicGraderController extends AbstractController {
 
         try {
             $page = $gradeable->isPdfUpload() ? ($gradeable->isStudentPdfUpload() ? Component::PDF_PAGE_STUDENT : 1) : Component::PDF_PAGE_NONE;
+            $title = $curve ? 'Curved Score' : 'Problem ' . strval(count($gradeable->getComponents()) + 1);
 
             // Once we've parsed the inputs and checked permissions, perform the operation
             $component = $gradeable->addComponent(
-                'Problem ' . strval(count($gradeable->getComponents()) + 1),
+                $title,
                 '',
                 '',
                 0,
@@ -2666,6 +2729,7 @@ class ElectronicGraderController extends AbstractController {
                 0,
                 false,
                 $peer,
+                $curve,
                 $page
             );
             $component->addMark('No Credit', 0.0, false);

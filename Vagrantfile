@@ -64,6 +64,14 @@ def gen_script(machine_name, worker: false, base: false)
     DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
     VERSION=$(lsb_release -sr | tr '[:upper:]' '[:lower:]')
     mkdir -p ${GIT_PATH}/.vagrant/logs
+    
+    # Install CIFS utilities
+    sudo apt-get update
+    sudo apt-get install -y cifs-utils
+
+    # Add wildcard to Git's safe directory list for all users and all repositories
+    sudo git config --system --add safe.directory '*'
+
     #{setup_cmd}
 SCRIPT
 
