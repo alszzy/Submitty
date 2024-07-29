@@ -154,6 +154,7 @@ function ajaxGetGradeableRubric(gradeable_id) {
  * @returns {Promise}
  */
 function ajaxSaveComponent(gradeable_id, component_id, title, ta_comment, student_comment, page, lower_clamp, default_value, max_value, upper_clamp, is_itempool_linked, itempool_option) {
+        
     return new Promise((resolve, reject) => {
         $.getJSON({
             type: 'POST',
@@ -298,6 +299,7 @@ function ajaxGetGradedComponent(gradeable_id, component_id, anon_id) {
  * @return {Promise} Rejects except when the response returns status 'success'
  */
 function ajaxSaveGradedComponent(gradeable_id, component_id, anon_id, graded_version, custom_points, custom_message, silent_edit, mark_ids) {
+
     return new Promise((resolve, reject) => {
         $.getJSON({
             type: 'POST',
@@ -1149,7 +1151,11 @@ function getComponentPageNumber(component_id) {
  * @return {Object}
  */
 function getComponentFromDOM(component_id) {
+    
     const domElement = getComponentJQuery(component_id);
+    console.log('domElement');
+    console.log(domElement.attr('data-title'));
+    console.log(domElement.attr('data-curve'));
 
     if (isInstructorEditEnabled() && isComponentOpen(component_id)) {
         const penaltyPoints = Math.abs(parseFloat(domElement.find('input.penalty-points').val()));
@@ -1171,7 +1177,7 @@ function getComponentFromDOM(component_id) {
             is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
             itempool_option: domElement.find('select[name="component-itempool"]').val(),
             peer: (domElement.attr('data-peer') === 'true'),
-            curve: (domElement.attr('data-curve') === 'true'),
+            curve_component: (domElement.attr('data-curve') === 'true'),
         };
     }
     return {
@@ -1188,7 +1194,7 @@ function getComponentFromDOM(component_id) {
         is_itempool_linked: domElement.find(`#yes-link-item-pool-${component_id}`).is(':checked'),
         itempool_option: domElement.find('select[name="component-itempool"]').val(),
         peer: (domElement.attr('data-peer') === 'true'),
-        curve: (domElement.attr('data-curve') === 'true'),
+        curve_component: (domElement.attr('data-curve') === 'true'),
     };
 }
 
@@ -1898,6 +1904,12 @@ function onGetMarkStats(me) {
  */
 function onClickComponent(me, edit_mode = false) {
     const component_id = getComponentIdFromDOMElement(me);
+
+    let comp = getComponentFromDOM(component_id);
+    console.log('onClickComponent HEY');
+    console.log(comp);
+
+
     toggleComponent(component_id, true, edit_mode)
         .catch((err) => {
             console.error(err);
@@ -2295,6 +2307,8 @@ function getMarkFromMarkArray(marks, mark_id) {
  * @return {Promise}
  */
 function reloadGradingRubric(gradeable_id, anon_id) {
+    console.log('refreshGradedComponent');
+
     let gradeable_tmp = null;
     return ajaxGetGradeableRubric(gradeable_id)
         .catch((err) => {
@@ -2687,6 +2701,9 @@ function openComponentGrading(component_id) {
     OLD_GRADED_COMPONENT_LIST[component_id] = GRADED_COMPONENTS_LIST[component_id];
     OLD_MARK_LIST[component_id] = COMPONENT_RUBRIC_LIST[component_id].marks;
 
+    console.log('openComponentGrading');
+    console.log(COMPONENT_RUBRIC_LIST[component_id])
+
     return injectGradingComponent(COMPONENT_RUBRIC_LIST[component_id], GRADED_COMPONENTS_LIST[component_id], isEditModeEnabled(), true)
         .then(() => {
             const page = getComponentPageNumber(component_id);
@@ -2840,6 +2857,11 @@ function closeComponentGrading(component_id, saveChanges) {
     GRADED_COMPONENTS_LIST[component_id] = getGradedComponentFromDOM(component_id);
     COMPONENT_RUBRIC_LIST[component_id] = getComponentFromDOM(component_id);
 
+
+
+    console.log('closeComponentGrading');
+    console.log(COMPONENT_RUBRIC_LIST[component_id]);
+
     if (saveChanges) {
         sequence = sequence.then(() => {
             return saveComponent(component_id);
@@ -2875,6 +2897,8 @@ function closeComponent(component_id, saveChanges = true, edit_mode = false) {
             });
     }
     else {
+        console.log('isInstructorEditNOTEnabled');
+
         return closeComponentGrading(component_id, saveChanges)
             .then(() => {
                 setComponentInProgress(component_id, false);
@@ -3178,6 +3202,10 @@ function saveComponent(component_id) {
         // We're in grade mode, so save the graded component
         // The grader didn't change the grade at all, so don't save (don't put our name on a grade we didn't contribute to)
         if (!gradedComponentsEqual(gradedComponent, OLD_GRADED_COMPONENT_LIST[component_id])) {
+
+            console.log(getComponentFromDOM(component_id));
+
+
             saveGradedComponent(component_id);
             if (!isSilentEditModeEnabled()) {
                 GRADED_COMPONENTS_LIST[component_id].grader_id = getGraderId();
@@ -3196,6 +3224,13 @@ function saveComponent(component_id) {
  * @return {Promise}
  */
 function saveGradedComponent(component_id) {
+
+    console.log('meow');
+
+
+    
+
+
     const gradeable_id = getGradeableId();
     const gradedComponent = getGradedComponentFromDOM(component_id);
     gradedComponent.graded_version = getDisplayVersion();
@@ -3261,6 +3296,7 @@ function refreshGradedComponentHeader(component_id, showMarkList) {
  * @return {Promise}
  */
 function refreshGradedComponent(component_id, showMarkList) {
+
     return injectGradingComponent(
         getComponentFromDOM(component_id),
         getGradedComponentFromDOM(component_id),
@@ -3370,6 +3406,10 @@ function injectInstructorEditComponentHeader(component, showMarkList) {
  */
 function injectGradingComponent(component, graded_component, editable, showMarkList) {
     const student_grader = $('#student-grader').attr('is-student-grader');
+
+    console.log('injectGradingComponent');
+    console.log(component);
+
     return renderGradingComponent(getGraderId(), component, graded_component, isGradingDisabled(), canVerifyGraders(), getPointPrecision(), editable, showMarkList, getComponentVersionConflict(graded_component), student_grader, TA_GRADING_PEER, getAllowCustomMarks())
         .then((elements) => {
             setComponentContents(component.id, elements);

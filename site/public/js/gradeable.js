@@ -125,6 +125,9 @@ function prepGradedComponent(component, graded_component) {
  */
 
 function renderGradingGradeable(grader_id, gradeable, graded_gradeable, grading_disabled, canVerifyGraders, displayVersion) {
+
+    console.log(gradeable);
+
     if (graded_gradeable.graded_components === undefined || graded_gradeable.graded_components === null) {
         graded_gradeable.graded_components = {};
     }
@@ -211,6 +214,7 @@ function renderPeerGradeable(grader_id, gradeable, graded_gradeable, grading_dis
  * @returns {Promise<string>} the html for the graded component
  */
 function renderGradingComponent(grader_id, component, graded_component, grading_disabled, canVerifyGraders, precision, editable, showMarkList, componentVersionConflict, is_student, taGradingPeer, allowCustomMarks) {
+    
     return new Promise((resolve) => {
         // Make sure we prep the graded component before rendering
         graded_component = prepGradedComponent(component, graded_component);
@@ -218,6 +222,7 @@ function renderGradingComponent(grader_id, component, graded_component, grading_
             component.ta_comment = '';
         }
         // TODO: i don't think this is async
+
         resolve(Twig.twig({ ref: 'GradingComponent' }).render({
             component: component,
             graded_component: graded_component,
@@ -228,8 +233,8 @@ function renderGradingComponent(grader_id, component, graded_component, grading_
             decimal_precision: DECIMAL_PRECISION,
             can_verify_graders: canVerifyGraders,
             grader_id: grader_id,
-            peer_component: component.peer,
-            curve_component: component.curve,
+            peer_component: component.peer_component,
+            curve_component: component.curve_component,
             allow_custom_marks: allowCustomMarks,
             itempool_id: Object.prototype.hasOwnProperty.call(itempool_items, component.id) ? itempool_items[component.id] : '',
             ta_grading_peer: taGradingPeer,
