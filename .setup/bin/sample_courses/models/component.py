@@ -16,6 +16,7 @@ class Component(object):
         self.student_comment = ""
         self.is_text = False
         self.is_peer_component = False
+        self.is_curve_component = False
         self.page = 0
         self.order = order
         self.marks = []
@@ -24,6 +25,8 @@ class Component(object):
             self.ta_comment = component["gc_ta_comment"]
         if "gc_is_peer" in component:
             self.is_peer_component = component["gc_is_peer"]
+        if "gc_is_curve" in component:
+            self.is_curve_component = component["gc_is_curve"]
         if "gc_student_comment" in component:
             self.student_comment = component["gc_student_comment"]
         if "gc_is_text" in component:
